@@ -21,7 +21,6 @@ def model_fn(features, labels, mode, params, config):
     # use a pretrained backbone network
     if is_training:
         with tf.name_scope('init_from_checkpoint'):
-            #checkpoint_scope = '/'
             tf.train.init_from_checkpoint(
                 params['pretrained_checkpoint'],
                 {'vgg_19/': 'encoder/'}
@@ -43,8 +42,9 @@ def model_fn(features, labels, mode, params, config):
         add_weight_decay(params['weight_decay'])
         regularization_loss = tf.losses.get_regularization_loss()
 
-    reconstruction_loss = tf.nn.l2_loss(images - restored_images)
-    features_loss = tf.nn.l2_loss(encoding - encoding_of_restored_images)
+    normalizer = tf.to_float(tf.shape(images)[0])
+    reconstruction_loss = tf.nn.l2_loss(images - restored_images)/normalizer
+    features_loss = tf.nn.l2_loss(encoding - encoding_of_restored_images)/normalizer
 
     tf.losses.add_loss(reconstruction_loss)
     tf.losses.add_loss(params['lambda'] * features_loss)
@@ -54,7 +54,16 @@ def model_fn(features, labels, mode, params, config):
     total_loss = tf.losses.get_total_loss(add_regularization_losses=True)
 
     if mode == tf.estimator.ModeKeys.EVAL:
-        pass
+
+        eval_metric_ops = {
+            'val_reconstruction_loss': tf.metrics.mean(reconstruction_loss),
+            'val_features_loss': tf.metrics.mean(features_loss)
+        }
+
+        return tf.estimator.EstimatorSpec(
+            mode, loss=total_loss,
+            eval_metric_ops=eval_metric_ops
+        )
 
     assert mode == tf.estimator.ModeKeys.TRAIN
     with tf.variable_scope('learning_rate'):

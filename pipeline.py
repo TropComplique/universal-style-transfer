@@ -4,9 +4,7 @@ import tensorflow as tf
 SHUFFLE_BUFFER_SIZE = 10000
 NUM_FILES_READ_IN_PARALLEL = 10
 NUM_PARALLEL_CALLS = 8
-#RESIZE_METHOD = tf.image.ResizeMethod.BILINEAR
-IMAGE_SIZE = 256  # this will be used for training and evaluation
-#MIN_DIMENSION = 256  # when evaluating, resize to this size before doing central crop
+IMAGE_SIZE = 256
 
 
 class Pipeline:
@@ -69,8 +67,7 @@ class Pipeline:
             image = (1.0 / 255.0) * tf.to_float(image)  # to [0, 1] range
 
         features = image
-        #labels = None
-        return features#, labels
+        return features
 
 
 def get_random_crop(image_as_string, crop_size):
