@@ -20,11 +20,11 @@ And don't forget set the right paths below.
 
 
 # paths to downloaded data
-IMAGES_DIR = '/home/dan/datasets/COCO/images/'
+IMAGES_DIR = '/mnt/datasets/COCO/images/'
 # (it contains folders train2017 and val2017)
 
 # path where converted data will be stored
-RESULT_PATH = '/home/dan/datasets/COCO/ust/'
+RESULT_PATH = '/mnt/datasets/COCO/ust/'
 
 # because dataset is big we will split it into parts
 NUM_TRAIN_SHARDS = 300
@@ -53,7 +53,7 @@ def to_tf_example(image_path):
     width, height = image.size
     if image.mode == 'L':  # if grayscale
         rgb_image = np.stack(3*[np.array(image)], axis=2)
-        encoded_jpg = to_jpeg_bytes(rgb_image)
+        encoded_jpg = to_jpeg_bytes(Image.fromarray(rgb_image))
         image = Image.open(io.BytesIO(encoded_jpg))
     assert image.mode == 'RGB'
     assert width > 0 and height > 0

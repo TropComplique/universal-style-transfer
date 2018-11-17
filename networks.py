@@ -26,31 +26,31 @@ def encoder(images):
         with slim.arg_scope([slim.conv2d], trainable=False, stride=1, padding='VALID'):
             with slim.arg_scope([slim.max_pool2d], stride=2, padding='SAME'):
 
-                x = conv(x, 64, scope='conv1_1')
+                x = conv(x, 64, scope='conv1/conv1_1')
                 features['Relu_1_1'] = x
-                x = conv(x, 64, scope='conv1_2')
+                x = conv(x, 64, scope='conv1/conv1_2')
                 x = slim.max_pool2d(x, [2, 2], scope='pool1')
 
-                x = conv(x, 128, scope='conv2_1')
+                x = conv(x, 128, scope='conv2/conv2_1')
                 features['Relu_2_1'] = x
-                x = conv(x, 128, scope='conv2_2')
+                x = conv(x, 128, scope='conv2/conv2_2')
                 x = slim.max_pool2d(x, [2, 2], scope='pool2')
 
-                x = conv(x, 256, scope='conv3_1')
+                x = conv(x, 256, scope='conv3/conv3_1')
                 features['Relu_3_1'] = x
-                x = conv(x, 256, scope='conv3_2')
-                x = conv(x, 256, scope='conv3_3')
-                x = conv(x, 256, scope='conv3_4')
+                x = conv(x, 256, scope='conv3/conv3_2')
+                x = conv(x, 256, scope='conv3/conv3_3')
+                x = conv(x, 256, scope='conv3/conv3_4')
                 x = slim.max_pool2d(x, [2, 2], scope='pool3')
 
-                x = conv(x, 512, scope='conv4_1')
+                x = conv(x, 512, scope='conv4/conv4_1')
                 features['Relu_4_1'] = x
-                x = conv(x, 512, scope='conv4_2')
-                x = conv(x, 512, scope='conv4_3')
-                x = conv(x, 512, scope='conv4_4')
+                x = conv(x, 512, scope='conv4/conv4_2')
+                x = conv(x, 512, scope='conv4/conv4_3')
+                x = conv(x, 512, scope='conv4/conv4_4')
                 x = slim.max_pool2d(x, [2, 2], scope='pool4')
 
-                x = conv(x, 512, scope='conv5_1')
+                x = conv(x, 512, scope='conv5/conv5_1')
                 features['Relu_5_1'] = x
 
     return features

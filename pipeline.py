@@ -4,9 +4,9 @@ import tensorflow as tf
 SHUFFLE_BUFFER_SIZE = 10000
 NUM_FILES_READ_IN_PARALLEL = 10
 NUM_PARALLEL_CALLS = 8
-RESIZE_METHOD = tf.image.ResizeMethod.BILINEAR
+#RESIZE_METHOD = tf.image.ResizeMethod.BILINEAR
 IMAGE_SIZE = 256  # this will be used for training and evaluation
-MIN_DIMENSION = 256  # when evaluating, resize to this size before doing central crop
+#MIN_DIMENSION = 256  # when evaluating, resize to this size before doing central crop
 
 
 class Pipeline:
@@ -63,13 +63,14 @@ class Pipeline:
             image = tf.image.random_flip_left_right(image)
             image = (1.0 / 255.0) * tf.to_float(image)  # to [0, 1] range
             image = random_color_manipulations(image, probability=0.1, grayscale_probability=0.05)
+            image.set_shape([IMAGE_SIZE, IMAGE_SIZE, 3])
         else:
             image = tf.image.decode_jpeg(image_as_string, channels=3)
             image = (1.0 / 255.0) * tf.to_float(image)  # to [0, 1] range
 
         features = image
-        labels = None
-        return features, labels
+        #labels = None
+        return features#, labels
 
 
 def get_random_crop(image_as_string, crop_size):

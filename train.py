@@ -1,15 +1,7 @@
 import tensorflow as tf
 import os
 from model import model_fn
-from detector.input_pipeline import Pipeline
-
-# to train a face detector use this:
-# from params import wider_params as params
-
-# to train an object detector on coco use this:
-# from params import coco_params as params
-
-from params import wider_light_params as params
+from pipeline import Pipeline
 
 tf.logging.set_verbosity('INFO')
 
@@ -24,32 +16,32 @@ python train.py
 
 GPU_TO_USE = '0'
 
-params = {'lambda': 1.0, 'features_to_use': 'Relu_1_1'  # 'Relu_X_1'}
+params = {
+    'lambda': 1.0, 
+    'feature_to_use': 'Relu_1_1',  # 'Relu_X_1'
+    'train_dataset': '/mnt/datasets/COCO/ust/train/',
+    'val_dataset': '/mnt/datasets/COCO/ust/train/',
+    'batch_size': 8,
+    'model_dir': 'models/run00',
+    'num_steps': 16000,
+    'pretrained_checkpoint': 'pretrained/vgg_19.ckpt',
+    'weight_decay': 1e-6,
+}
 
 
 def get_input_fn(is_training):
 
-    dataset_path = params['train_dataset_path'] if is_training else params['val_dataset_path']
+    dataset_path = params['train_dataset'] if is_training else params['val_dataset']
     filenames = os.listdir(dataset_path)
     filenames = [n for n in filenames if n.endswith('.tfrecords')]
     filenames = [os.path.join(dataset_path, n) for n in sorted(filenames)]
+    batch_size = params['batch_size'] if is_training else 1
 
     def input_fn():
-        pipeline = Pipeline(filenames, is_training, params)
+        pipeline = Pipeline(filenames, is_training, batch_size)
         return pipeline.dataset
 
     return input_fn
-
-
-# session_config = tf.ConfigProto(
-#     inter_op_parallelism_threads=0,
-#     intra_op_parallelism_threads=0,
-#     allow_soft_placement=True
-# )
-# session_config.gpu_options.visible_device_list = '0,1'
-# distribution = tf.contrib.distribute.MirroredStrategy(num_gpus=2)
-# distribution = tf.contrib.distribute.OneDeviceStrategy('device:GPU:{}'.format(GPU_TO_USE))
-# run_config = tf.estimator.RunConfig(train_distribute=distribution)
 
 
 session_config = tf.ConfigProto()
