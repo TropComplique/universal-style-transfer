@@ -40,6 +40,7 @@ def model_fn(features, labels, mode, params, config):
     tf.losses.add_loss(reconstruction_loss)
     tf.losses.add_loss(params['lambda'] * features_loss)
     tf.summary.scalar('reconstruction_loss', reconstruction_loss)
+    tf.summary.scalar('regularization_loss', regularization_loss)
     tf.summary.scalar('features_loss', features_loss)
 
     total_loss = tf.losses.get_total_loss(add_regularization_losses=True)
@@ -60,8 +61,12 @@ def model_fn(features, labels, mode, params, config):
     with tf.variable_scope('learning_rate'):
         global_step = tf.train.get_global_step()
         initial_learning_rate = 1e-4
-        decay_rate = 5e-5
-        learning_rate = tf.to_float(initial_learning_rate / (1.0 + tf.to_float(global_step)*decay_rate))
+        end_learning_rate = 1e-6
+        learning_rate = tf.train.polynomial_decay(
+            initial_learning_rate, global_step,
+            params['num_steps'], end_learning_rate,
+            power=1.0
+        )  # linear decay
         tf.summary.scalar('learning_rate', learning_rate)
 
     with tf.variable_scope('optimizer'):

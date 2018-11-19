@@ -23,9 +23,9 @@ params = {
     'val_dataset': '/mnt/datasets/COCO/ust/val/',
     'batch_size': 8,
     'model_dir': 'models/run00/',
-    'num_steps': 100000,
+    'num_steps': 200000,
     'pretrained_checkpoint': 'pretrained/vgg_19.ckpt',
-    'weight_decay': 1e-8,
+    'weight_decay': 1e-6,
 }
 
 

@@ -18,40 +18,45 @@ def encoder(images):
     """
     features = {}
 
-    with tf.name_scope('standardize'):
-        channel_means = tf.constant([123.15163, 115.902885, 103.06262], dtype=tf.float32)
-        x = images - channel_means
-
     with tf.variable_scope('encoder', reuse=tf.AUTO_REUSE):
         with slim.arg_scope([slim.conv2d], trainable=False, stride=1, padding='VALID'):
             with slim.arg_scope([slim.max_pool2d], stride=2, padding='SAME'):
 
-                x = conv(x, 64, scope='conv1/conv1_1')
-                features['Relu_1_1'] = x
-                x = conv(x, 64, scope='conv1/conv1_2')
+                with tf.name_scope('standardize'):
+                    channel_means = tf.constant([123.15163, 115.902885, 103.06262], dtype=tf.float32)
+                    x = images - channel_means
+
+                with tf.variable_scope('conv1'):
+                    x = conv(x, 64, scope='conv1_1')
+                    features['Relu_1_1'] = x
+                    x = conv(x, 64, scope='conv1_2')
                 x = slim.max_pool2d(x, [2, 2], scope='pool1')
 
-                x = conv(x, 128, scope='conv2/conv2_1')
-                features['Relu_2_1'] = x
-                x = conv(x, 128, scope='conv2/conv2_2')
+                with tf.variable_scope('conv2'):
+                    x = conv(x, 128, scope='conv2_1')
+                    features['Relu_2_1'] = x
+                    x = conv(x, 128, scope='conv2_2')
                 x = slim.max_pool2d(x, [2, 2], scope='pool2')
 
-                x = conv(x, 256, scope='conv3/conv3_1')
-                features['Relu_3_1'] = x
-                x = conv(x, 256, scope='conv3/conv3_2')
-                x = conv(x, 256, scope='conv3/conv3_3')
-                x = conv(x, 256, scope='conv3/conv3_4')
+                with tf.variable_scope('conv3'):
+                    x = conv(x, 256, scope='conv3_1')
+                    features['Relu_3_1'] = x
+                    x = conv(x, 256, scope='conv3_2')
+                    x = conv(x, 256, scope='conv3_3')
+                    x = conv(x, 256, scope='conv3_4')
                 x = slim.max_pool2d(x, [2, 2], scope='pool3')
 
-                x = conv(x, 512, scope='conv4/conv4_1')
-                features['Relu_4_1'] = x
-                x = conv(x, 512, scope='conv4/conv4_2')
-                x = conv(x, 512, scope='conv4/conv4_3')
-                x = conv(x, 512, scope='conv4/conv4_4')
+                with tf.variable_scope('conv4'):
+                    x = conv(x, 512, scope='conv4_1')
+                    features['Relu_4_1'] = x
+                    x = conv(x, 512, scope='conv4_2')
+                    x = conv(x, 512, scope='conv4_3')
+                    x = conv(x, 512, scope='conv4_4')
                 x = slim.max_pool2d(x, [2, 2], scope='pool4')
 
-                x = conv(x, 512, scope='conv5/conv5_1')
-                features['Relu_5_1'] = x
+                with tf.variable_scope('conv5'):
+                    x = conv(x, 512, scope='conv5_1')
+                    features['Relu_5_1'] = x
 
     return features
 
@@ -96,17 +101,18 @@ def decoder(x, feature):
                 x = conv(x, 3, use_relu=False, scope='conv1_1')
                 # output is approximately in the range [-1, 1]
 
-    with tf.name_scope('standardize'):
-        image = 255.0 * 0.5 * (x + 1.0)
-        # now output is in the range [0, 255]
+            with tf.name_scope('standardize'):
+                image = 255.0 * 0.5 * (x + 1.0)
+                # now output is in the range [0, 255]
 
     return image
 
 
 def conv(x, channels, use_relu=True, scope='conv'):
-    x = tf.pad(x, [[0, 0], [1, 1], [1, 1], [0, 0]], mode='REFLECT')
-    x = slim.conv2d(x, channels, [3, 3], activation_fn=tf.nn.relu if use_relu else None, scope=scope)
-    return x
+    with tf.variable_scope(scope):
+        x = tf.pad(x, [[0, 0], [1, 1], [1, 1], [0, 0]], mode='REFLECT')
+        x = slim.conv2d(x, channels, [3, 3], activation_fn=tf.nn.relu if use_relu else None, scope='conv2d')
+        return x
 
 
 def upsampling(x, rate=2, scope='upsampling'):
