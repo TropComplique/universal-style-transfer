@@ -63,10 +63,11 @@ class Pipeline:
             image = random_color_manipulations(image, probability=0.1, grayscale_probability=0.05)
             image.set_shape([IMAGE_SIZE, IMAGE_SIZE, 3])
         else:
-            image = tf.image.decode_jpeg(image_as_string, channels=3)
+            crop_window = tf.stack([0, 0, 512, 512])
+            image = tf.image.decode_and_crop_jpeg(image_as_string, crop_window, channels=3)
             image = (1.0 / 255.0) * tf.to_float(image)  # to [0, 1] range
 
-        features = image
+        features = 255.0*image
         return features
 
 

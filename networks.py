@@ -76,7 +76,7 @@ def decoder(x, feature):
                 x = conv(x, 512, scope='conv5_1')
                 x = upsampling(x, scope='upsampling4')
                 x = conv(x, 512, scope='conv4_4')
-                x = conv(x, 512, scope='conv4_4')
+                x = conv(x, 512, scope='conv4_3')
                 x = conv(x, 512, scope='conv4_2')
             if X > 3:
                 x = conv(x, 256, scope='conv4_1')

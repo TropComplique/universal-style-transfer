@@ -23,7 +23,7 @@ params = {
     'val_dataset': '/mnt/datasets/COCO/ust/val/',
     'batch_size': 8,
     'model_dir': 'models/run00/',
-    'num_steps': 16000,
+    'num_steps': 100000,
     'pretrained_checkpoint': 'pretrained/vgg_19.ckpt',
     'weight_decay': 1e-8,
 }
@@ -49,8 +49,8 @@ session_config.gpu_options.visible_device_list = GPU_TO_USE
 run_config = tf.estimator.RunConfig()
 run_config = run_config.replace(
     model_dir=params['model_dir'], session_config=session_config,
-    save_summary_steps=200, save_checkpoints_secs=600,
-    log_step_count_steps=100
+    save_summary_steps=400, save_checkpoints_secs=1200,
+    log_step_count_steps=200
 )
 
 train_input_fn = get_input_fn(is_training=True)
@@ -58,5 +58,5 @@ val_input_fn = get_input_fn(is_training=False)
 estimator = tf.estimator.Estimator(model_fn, params=params, config=run_config)
 
 train_spec = tf.estimator.TrainSpec(train_input_fn, max_steps=params['num_steps'])
-eval_spec = tf.estimator.EvalSpec(val_input_fn, steps=None, start_delay_secs=3600, throttle_secs=3600)
+eval_spec = tf.estimator.EvalSpec(val_input_fn, steps=None, start_delay_secs=2*3600, throttle_secs=2*3600)
 tf.estimator.train_and_evaluate(estimator, train_spec, eval_spec)

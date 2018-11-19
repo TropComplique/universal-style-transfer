@@ -26,23 +26,14 @@ def model_fn(features, labels, mode, params, config):
                 {'vgg_19/': 'encoder/'}
             )
 
-    if mode == tf.estimator.ModeKeys.PREDICT:
-        # this is required for exporting a savedmodel
-        export_outputs = tf.estimator.export.PredictOutput({
-            name: tf.identity(tensor, name)
-            for name, tensor in predictions.items()
-        })
-        return tf.estimator.EstimatorSpec(
-            mode, predictions=predictions,
-            export_outputs={'outputs': export_outputs}
-        )
+    assert mode != tf.estimator.ModeKeys.PREDICT
 
     # add L2 regularization
     with tf.name_scope('weight_decay'):
         add_weight_decay(params['weight_decay'])
         regularization_loss = tf.losses.get_regularization_loss()
 
-    normalizer = tf.to_float(tf.shape(images)[0])
+    normalizer = 255.0*tf.to_float(tf.shape(images)[0])
     reconstruction_loss = tf.nn.l2_loss(images - restored_images)/normalizer
     features_loss = tf.nn.l2_loss(encoding - encoding_of_restored_images)/normalizer
 
