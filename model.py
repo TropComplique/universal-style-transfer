@@ -9,13 +9,12 @@ def model_fn(features, labels, mode, params, config):
     """
     images = features
 
+    # build the main graph
     feature_to_use = params['feature_to_use']  # Relu_X_1
     encoding = encoder(images)[feature_to_use]
-
     restored_images = decoder(encoding, feature_to_use)
     encoding_of_restored_images = encoder(restored_images)[feature_to_use]
 
-    # build the main graph
     is_training = mode == tf.estimator.ModeKeys.TRAIN
 
     # use a pretrained backbone network
@@ -33,14 +32,15 @@ def model_fn(features, labels, mode, params, config):
         add_weight_decay(params['weight_decay'])
         regularization_loss = tf.losses.get_regularization_loss()
 
-    normalizer = 255.0*tf.to_float(tf.shape(images)[0])
+    batch_size = tf.to_float(tf.shape(images)[0])
+    normalizer = 255.0 * batch_size
     reconstruction_loss = tf.nn.l2_loss(images - restored_images)/normalizer
     features_loss = tf.nn.l2_loss(encoding - encoding_of_restored_images)/normalizer
 
     tf.losses.add_loss(reconstruction_loss)
     tf.losses.add_loss(params['lambda'] * features_loss)
-    tf.summary.scalar('reconstruction_loss', reconstruction_loss)
     tf.summary.scalar('regularization_loss', regularization_loss)
+    tf.summary.scalar('reconstruction_loss', reconstruction_loss)
     tf.summary.scalar('features_loss', features_loss)
 
     total_loss = tf.losses.get_total_loss(add_regularization_losses=True)
@@ -60,13 +60,11 @@ def model_fn(features, labels, mode, params, config):
     assert mode == tf.estimator.ModeKeys.TRAIN
     with tf.variable_scope('learning_rate'):
         global_step = tf.train.get_global_step()
-        initial_learning_rate = 1e-4
-        end_learning_rate = 1e-6
         learning_rate = tf.train.polynomial_decay(
-            initial_learning_rate, global_step,
-            params['num_steps'], end_learning_rate,
-            power=1.0
-        )  # linear decay
+            params['initial_learning_rate'], global_step,
+            params['num_steps'], params['end_learning_rate'],
+            power=1.0  # linear decay
+        )
         tf.summary.scalar('learning_rate', learning_rate)
 
     with tf.variable_scope('optimizer'):
@@ -77,10 +75,7 @@ def model_fn(features, labels, mode, params, config):
 
 
 def add_weight_decay(weight_decay):
-    weights = [
-        v for v in tf.trainable_variables()
-        if 'weights' in v.name and 'depthwise_weights' not in v.name
-    ]
+    weights = [v for v in tf.trainable_variables() if 'weights' in v.name]
     for w in weights:
         value = tf.multiply(weight_decay, tf.nn.l2_loss(w))
         tf.add_to_collection(tf.GraphKeys.REGULARIZATION_LOSSES, value)

@@ -46,9 +46,8 @@ class Pipeline:
         2. Possibly augments it.
 
         Returns:
-            image: a float tensor with shape [height, width, 3],
-                a RGB image with pixel values in the range [0, 1].
-            label: an int tensor with shape [].
+            a float tensor with shape [height, width, 3],
+            it represents a RGB image with pixel values in the range [0, 255].
         """
         features = {'image': tf.FixedLenFeature([], tf.string)}
         parsed_features = tf.parse_single_example(example_proto, features)
@@ -62,13 +61,13 @@ class Pipeline:
             image = (1.0 / 255.0) * tf.to_float(image)  # to [0, 1] range
             image = random_color_manipulations(image, probability=0.1, grayscale_probability=0.05)
             image.set_shape([IMAGE_SIZE, IMAGE_SIZE, 3])
+            image *= 255.0
         else:
             crop_window = tf.stack([0, 0, 512, 512])
             image = tf.image.decode_and_crop_jpeg(image_as_string, crop_window, channels=3)
-            image = (1.0 / 255.0) * tf.to_float(image)  # to [0, 1] range
+            image = tf.to_float(image)
 
-        features = 255.0*image
-        return features
+        return image
 
 
 def get_random_crop(image_as_string, crop_size):

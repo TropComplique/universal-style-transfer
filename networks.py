@@ -23,7 +23,7 @@ def encoder(images):
             with slim.arg_scope([slim.max_pool2d], stride=2, padding='SAME'):
 
                 with tf.name_scope('standardize'):
-                    channel_means = tf.constant([123.15163, 115.902885, 103.06262], dtype=tf.float32)
+                    channel_means = tf.constant([123.68, 116.78, 103.94], dtype=tf.float32)
                     x = images - channel_means
 
                 with tf.variable_scope('conv1'):
@@ -110,7 +110,10 @@ def decoder(x, feature):
 
 def conv(x, channels, use_relu=True, scope='conv'):
     x = tf.pad(x, [[0, 0], [1, 1], [1, 1], [0, 0]], mode='REFLECT')
-    x = slim.conv2d(x, channels, [3, 3], activation_fn=tf.nn.relu if use_relu else None, scope=scope)
+    x = slim.conv2d(
+        x, channels, [3, 3], activation_fn=tf.nn.relu if use_relu else None, scope=scope,
+        weights_initializer=tf.contrib.layers.variance_scaling_initializer(uniform=True)
+    )
     return x
 
 
