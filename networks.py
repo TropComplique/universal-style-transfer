@@ -109,10 +109,9 @@ def decoder(x, feature):
 
 
 def conv(x, channels, use_relu=True, scope='conv'):
-    with tf.variable_scope(scope):
-        x = tf.pad(x, [[0, 0], [1, 1], [1, 1], [0, 0]], mode='REFLECT')
-        x = slim.conv2d(x, channels, [3, 3], activation_fn=tf.nn.relu if use_relu else None, scope='conv2d')
-        return x
+    x = tf.pad(x, [[0, 0], [1, 1], [1, 1], [0, 0]], mode='REFLECT')
+    x = slim.conv2d(x, channels, [3, 3], activation_fn=tf.nn.relu if use_relu else None, scope=scope)
+    return x
 
 
 def upsampling(x, rate=2, scope='upsampling'):

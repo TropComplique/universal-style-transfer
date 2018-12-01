@@ -18,11 +18,11 @@ GPU_TO_USE = '0'
 
 params = {
     'lambda': 1.0,
-    'feature_to_use': 'Relu_5_1',  # 'Relu_X_1'
+    'feature_to_use': 'Relu_2_1',  # 'Relu_X_1'
     'train_dataset': '/mnt/datasets/COCO/ust/train/',
     'val_dataset': '/mnt/datasets/COCO/ust/val/',
     'batch_size': 8,
-    'model_dir': 'models/run00/',
+    'model_dir': 'models/run02/',
     'num_steps': 200000,
     'pretrained_checkpoint': 'pretrained/vgg_19.ckpt',
     'weight_decay': 1e-6,

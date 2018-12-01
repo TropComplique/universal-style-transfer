@@ -24,14 +24,14 @@ def convert_to_pb():
 
         raw_images = tf.placeholder(dtype=tf.uint8, shape=[None, None, None, 3], name='images')
 
-        feature_to_use = 'Relu_5_1'
+        feature_to_use = 'Relu_2_1'
         encoding = tf.identity(encoder(tf.to_float(raw_images))[feature_to_use], 'features')
         restored_images = tf.identity(decoder(encoding, feature_to_use), 'restored_images')
 
         saver = tf.train.Saver()
 
         with tf.Session(graph=graph, config=config) as sess:
-            saver.restore(sess, 'models/run00/model.ckpt-100000')
+            saver.restore(sess, 'models/run02/model.ckpt-49131')
 
             # output ops
             keep_nodes = ['features', 'restored_images']
