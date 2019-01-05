@@ -16,18 +16,18 @@ python train.py
 
 PARAMS = {
     'lambda': 1.0,
-    'feature_to_use': 'Relu_1_1',  # 'Relu_X_1'
+    'feature_to_use': 'Relu_5_1',  # 'Relu_X_1'
     'train_dataset': '/mnt/datasets/COCO/ust/train/',
     'val_dataset': '/mnt/datasets/COCO/ust/val/',
     'batch_size': 8,
-    'model_dir': 'models/run00/',
+    'model_dir': 'models/run04/',
     'num_steps': 200000,
     'pretrained_checkpoint': 'pretrained/vgg_19.ckpt',
     'weight_decay': 1e-6,
     'initial_learning_rate': 1e-4,
     'end_learning_rate': 1e-6
 }
-GPU_TO_USE = '0'
+GPU_TO_USE = '1'
 
 
 def get_input_fn(is_training):

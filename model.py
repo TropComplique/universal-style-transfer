@@ -8,14 +8,13 @@ def model_fn(features, labels, mode, params, config):
     The function is in format required by tf.estimator.
     """
     images = features
+    is_training = mode == tf.estimator.ModeKeys.TRAIN
 
     # build the main graph
     feature_to_use = params['feature_to_use']  # Relu_X_1
     encoding = encoder(images)[feature_to_use]
     restored_images = decoder(encoding, feature_to_use)
     encoding_of_restored_images = encoder(restored_images)[feature_to_use]
-
-    is_training = mode == tf.estimator.ModeKeys.TRAIN
 
     # use a pretrained backbone network
     if is_training:

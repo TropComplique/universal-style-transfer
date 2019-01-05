@@ -74,6 +74,12 @@ def decoder(x, feature):
     """
     X = int(feature[5])
 
+    # try to normalize features to [0, 1] range 
+    # (it is for better training)
+    normalizers = {1: 21, 2: 120, 3: 110, 4: 425, 5: 35}
+    # they were chosen by hand
+    x *= (1.0/float(normalizers[X]))
+
     with tf.variable_scope('decoder_' + str(X)):
         with slim.arg_scope([slim.conv2d], stride=1, padding='VALID'):
 
