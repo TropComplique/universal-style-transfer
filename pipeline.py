@@ -17,7 +17,6 @@ class Pipeline:
         """
         self.is_training = is_training
 
-        # read the files in parallel
         dataset = tf.data.Dataset.from_tensor_slices(filenames)
         num_shards = len(filenames)
         if is_training:
@@ -31,7 +30,6 @@ class Pipeline:
             dataset = dataset.shuffle(buffer_size=SHUFFLE_BUFFER_SIZE)
         dataset = dataset.repeat(None if is_training else 1)
 
-        # decode and augment data
         dataset = dataset.apply(tf.contrib.data.map_and_batch(
             self.parse_and_preprocess, batch_size=batch_size,
             num_parallel_batches=1, drop_remainder=False
@@ -54,6 +52,7 @@ class Pipeline:
 
         # get an image as a string, it will be decoded later
         image_as_string = parsed_features['image']
+        # all images have minimal side size equal to 512
 
         if self.is_training:
             image = get_random_crop(image_as_string, crop_size=IMAGE_SIZE)
@@ -63,6 +62,8 @@ class Pipeline:
             image.set_shape([IMAGE_SIZE, IMAGE_SIZE, 3])
             image *= 255.0
         else:
+            # validation during training of decoders is not very important!
+            # so this is a random choice:
             crop_window = tf.stack([0, 0, 512, 512])
             image = tf.image.decode_and_crop_jpeg(image_as_string, crop_window, channels=3)
             image = tf.to_float(image)

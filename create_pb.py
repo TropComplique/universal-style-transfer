@@ -4,18 +4,25 @@ tf.logging.set_verbosity('INFO')
 
 
 """
-It creates a .pb frozen inference graph.
+It creates .pb frozen inference graphs.
 """
 
 
 GPU_TO_USE = '0'
-FEATURE_TO_USE = 'Relu_5_1'
-NUM_FEATURES = 512 # 64, 128, 256, 512, 512
-PB_FILE_PATH = 'decoder_5.pb'
-CHECKPOINT = 'models/run04/model.ckpt-200000'
+NUM_FEATURES = {1: 64, 2: 128, 3: 256, 4: 512, 5: 512}
+CHECKPOINT = {
+    1: 'models/run00/model.ckpt-200000',
+    2: 'models/run01/model.ckpt-200000',
+    3: 'models/run02/model.ckpt-200000',
+    4: 'models/run03/model.ckpt-200000',
+    5: 'models/run04/model.ckpt-200000'
+}
 
 
-def convert_to_pb():
+def convert_decoder_to_pb(X):
+
+    features_to_use = 'Relu_{}_1'.format(X)
+    pb_file_path = 'inference/decoder_{}.pb'.format(X)
 
     graph = tf.Graph()
     config = tf.ConfigProto()
@@ -23,12 +30,18 @@ def convert_to_pb():
 
     with graph.as_default():
 
-        features = tf.placeholder(dtype=tf.float32, shape=[None, None, None, NUM_FEATURES], name='features')
-        restored_images = tf.identity(decoder(features, FEATURE_TO_USE), 'restored_images')
+        features = tf.placeholder(
+            dtype=tf.float32, name='features',
+            shape=[None, None, None, NUM_FEATURES[X]]
+        )
+        restored_images = tf.identity(
+            decoder(features, features_to_use),
+            'restored_images'
+        )
 
         saver = tf.train.Saver()
         with tf.Session(graph=graph, config=config) as sess:
-            saver.restore(sess, CHECKPOINT)
+            saver.restore(sess, CHECKPOINT[X])
 
             # output ops
             keep_nodes = ['restored_images']
@@ -41,10 +54,10 @@ def convert_to_pb():
                 input_graph_def, protected_nodes=keep_nodes
             )
 
-            with tf.gfile.GFile(PB_FILE_PATH, 'wb') as f:
+            with tf.gfile.GFile(pb_file_path, 'wb') as f:
                 f.write(output_graph_def.SerializeToString())
             print('%d ops in the final graph.' % len(output_graph_def.node))
-            
+
 
 def convert_encoder_to_pb():
 
@@ -77,10 +90,11 @@ def convert_encoder_to_pb():
                 input_graph_def, protected_nodes=keep_nodes
             )
 
-            with tf.gfile.GFile('encoder.pb', 'wb') as f:
+            with tf.gfile.GFile('inference/encoder.pb', 'wb') as f:
                 f.write(output_graph_def.SerializeToString())
             print('%d ops in the final graph.' % len(output_graph_def.node))
 
 
-convert_to_pb()
 convert_encoder_to_pb()
+for X in [1, 2, 3, 4, 5]:
+    convert_decoder_to_pb(X)

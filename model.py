@@ -41,7 +41,6 @@ def model_fn(features, labels, mode, params, config):
     tf.summary.scalar('regularization_loss', regularization_loss)
     tf.summary.scalar('reconstruction_loss', reconstruction_loss)
     tf.summary.scalar('features_loss', features_loss)
-
     total_loss = tf.losses.get_total_loss(add_regularization_losses=True)
 
     if mode == tf.estimator.ModeKeys.EVAL:

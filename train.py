@@ -15,17 +15,19 @@ python train.py
 
 
 PARAMS = {
-    'lambda': 1.0,
     'feature_to_use': 'Relu_5_1',  # 'Relu_X_1'
-    'train_dataset': '/mnt/datasets/COCO/ust/train/',
-    'val_dataset': '/mnt/datasets/COCO/ust/val/',
-    'batch_size': 8,
     'model_dir': 'models/run04/',
+    # all decoders (X = 1, 2, 3, 4, 5) were trained
+    # with the same hyperparameters:
+    'lambda': 1.0,
+    'batch_size': 8,
     'num_steps': 200000,
-    'pretrained_checkpoint': 'pretrained/vgg_19.ckpt',
     'weight_decay': 1e-6,
     'initial_learning_rate': 1e-4,
-    'end_learning_rate': 1e-6
+    'end_learning_rate': 1e-6,
+    'pretrained_checkpoint': 'pretrained/vgg_19.ckpt',
+    'train_dataset': '/mnt/datasets/COCO/ust/train/',
+    'val_dataset': '/mnt/datasets/COCO/ust/val/',
 }
 GPU_TO_USE = '1'
 
