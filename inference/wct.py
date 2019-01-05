@@ -1,4 +1,5 @@
 import tensorflow as tf
+import numpy as np
 
 
 EPSILON = 1e-8
@@ -6,17 +7,22 @@ EPSILON = 1e-8
 
 class Transfer:
 
-    def get_features(self, image):
+    def get_features(self, image, X=None):
         """
         Extracts all 'Relu_X_1' features from an image.
 
         Arguments:
             image: a uint8 numpy array with shape [h, w, 3].
+            X: an integer or None.
         Returns:
-            a dict with float numpy arrays.
+            a dict with float numpy arrays or just one float numpy array.
         """
+        if X is None:
+            output = self.output_tensors['encodings']
+        else:
+            output = self.output_tensors['encodings'][X]
         feed_dict = {self.input_tensors['image']: np.expand_dims(image, 0)}
-        return self.sess.run(self.output_tensors['encodings'], feed_dict)
+        return self.sess.run(output, feed_dict)
 
     def decode(self, features, X):
         """
@@ -62,9 +68,10 @@ class Transfer:
             a float numpy array with shape [1, H, W, C].
         """
         feed_dict = {
-            self.input_tensors['features'][X]: input_features,
+            self.input_tensors['features'][X]: features,
             self.input_tensors['style_mean']: style_mean,
-            self.input_tensors['coloring_matrix']: coloring_matrix
+            self.input_tensors['coloring_matrix']: coloring_matrix,
+            self.input_tensors['alpha']: alpha
         }
         return self.sess.run(self.output_tensors['blended'][X], feed_dict)
 
@@ -96,11 +103,13 @@ class Transfer:
             }
             style_mean = tf.placeholder(tf.float32, [None, 1])
             coloring_matrix = tf.placeholder(tf.float32, [None, None])
+            alpha = tf.placeholder(tf.float32, [])
             self.input_tensors = {
                 'image': input_image,
                 'features': input_features,
                 'style_mean': style_mean,
-                'coloring_matrix': coloring_matrix
+                'coloring_matrix': coloring_matrix,
+                'alpha': alpha
             }
 
             # CREATE STYLE TRANSFER GRAPH
@@ -191,8 +200,9 @@ def wct(content, style_mean, coloring_matrix, alpha):
     Returns:
         a float tensor with shape [1, H_c, W_c, C].
     """
-
-    fc, _, content_covariance = extract_style(content)
+    _, H_c, W_c, C = tf.unstack(tf.shape(content), axis=0)
+    
+    fc, _, content_covariance = extract_statistics(content)
     # they have shapes [C, H_c * W_c] and [C, C]
 
     with tf.device('/cpu:0'):
@@ -210,9 +220,9 @@ def wct(content, style_mean, coloring_matrix, alpha):
     fcs_hat = tf.matmul(coloring_matrix, fc_hat)  # shape [C, H_c * W_c]
     fcs_hat += style_mean
 
+    fcs_hat = tf.reshape(fcs_hat, [C, H_c, W_c])
+    fcs_hat = tf.expand_dims(tf.transpose(fcs_hat, (1, 2, 0)), 0)
+
     # blend whiten-colored feature with original content feature
     blended = alpha * fcs_hat + (1.0 - alpha) * content
-
-    blended = tf.reshape(blended, [C, H_c, W_c])
-    blended = tf.expand_dims(tf.transpose(blended, (1, 2, 0)), 0)
     return blended
