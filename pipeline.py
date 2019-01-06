@@ -13,7 +13,7 @@ class Pipeline:
         Arguments:
             filenames: a list of strings, paths to tfrecords files.
             is_training: a boolean.
-            batch_size, num_epochs: integers.
+            batch_size: an integer.
         """
         self.is_training = is_training
 

@@ -3,24 +3,29 @@ import numpy as np
 
 
 EPSILON = 1e-8
+NUM_FEATURES = {1: 64, 2: 128, 3: 256, 4: 512, 5: 512}
 
 
 class Transfer:
 
     def get_features(self, image, X=None):
         """
-        Extracts all 'Relu_X_1' features from an image.
+        Extracts 'Relu_X_1' features from an image.
 
         Arguments:
             image: a uint8 numpy array with shape [h, w, 3].
-            X: an integer or None.
+            X: an integer or None, feature to extract.
+                If `None` then it extracts all features.
+                Possible values of the integer are [1, 2, 3, 4, 5].
         Returns:
             a dict with float numpy arrays or just one float numpy array.
         """
+
         if X is None:
             output = self.output_tensors['encodings']
         else:
             output = self.output_tensors['encodings'][X]
+
         feed_dict = {self.input_tensors['image']: np.expand_dims(image, 0)}
         return self.sess.run(output, feed_dict)
 
@@ -30,10 +35,11 @@ class Transfer:
 
         Arguments:
             features: a float numpy array with shape [1, H, W, C].
-            X: an integer.
+            X: an integer, possible values are [1, 2, 3, 4, 5].
         Returns:
             a float numpy array with shape [h, w, 3].
         """
+        assert features.shape[3] == NUM_FEATURES[X]
         feed_dict = {self.input_tensors['features'][X]: features}
         return self.sess.run(self.output_tensors['restored_images'][X], feed_dict)[0]
 
@@ -42,9 +48,10 @@ class Transfer:
         Extracts style transforms from 'Relu_X_1' features.
 
         Arguments:
-            features: a dict with float numpy arrays.
+            features: a dict with float numpy arrays
+                that you got from `get_features`.
         Returns:
-            a dict with float numpy arrays.
+            a dict with tuples of float numpy arrays.
         """
         feed_dict = {
             self.input_tensors['features'][X]: features[X]
@@ -58,15 +65,25 @@ class Transfer:
 
     def blend(self, features, X, style_mean, coloring_matrix, alpha):
         """
+        This function:
+        1. Whitens the input features.
+        2. Colors them using `style_mean` and `coloring_matrix`.
+        3. Blends colored features with the initial input features using `alpha`.
+
         Arguments:
             features: a float numpy array with shape [1, H, W, C].
-            X: an integer.
-            style_mean: a float numpy array with shape [C].
+            X: an integer, possible values are [1, 2, 3, 4, 5].
+            style_mean: a float numpy array with shape [C, 1].
             coloring_matrix: a float numpy array with shape [C, C].
             alpha: a float number.
         Returns:
             a float numpy array with shape [1, H, W, C].
         """
+        C = NUM_FEATURES[X]
+        assert features.shape[3] == C
+        assert style_mean.shape[0] == C
+        assert coloring_matrix.shape[0] == C and coloring_matrix.shape[1] == C
+
         feed_dict = {
             self.input_tensors['features'][X]: features,
             self.input_tensors['style_mean']: style_mean,
@@ -77,7 +94,9 @@ class Transfer:
 
     def __init__(self):
 
+        # change this if you are not using all decoders
         features_to_use = [1, 2, 3, 4, 5]
+
         graph = tf.Graph()
         with graph.as_default():
 
@@ -201,7 +220,7 @@ def wct(content, style_mean, coloring_matrix, alpha):
         a float tensor with shape [1, H_c, W_c, C].
     """
     _, H_c, W_c, C = tf.unstack(tf.shape(content), axis=0)
-    
+
     fc, _, content_covariance = extract_statistics(content)
     # they have shapes [C, H_c * W_c] and [C, C]
 

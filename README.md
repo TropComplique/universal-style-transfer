@@ -11,5 +11,4 @@ This is an implementation of [Universal Style Transfer via Feature Transforms](h
 2. numpy, Pillow
 
 ## Credit
-This code is inspired by:  
-1. [eridgd/WCT-TF](https://github.com/eridgd/WCT-TF)
+This code is inspired by [eridgd/WCT-TF](https://github.com/eridgd/WCT-TF).
